@@ -28,17 +28,24 @@ namespace Neural_network
             T7 = new int[5], T8 = new int[5],
             P7 = new int[5], P8 = new int[5],
             O1 = new int[5], O2 = new int[5],
-            //tracked points x,y,z, co-ordinates (16 joints)
-            WristL = new int[3], WristR = new int[3],
-            ElbowL = new int[3], ElbowR = new int[3],
-            ShoulderL = new int[3], ShoulderR = new int[3],
-            Center = new int[3],
-            Neck = new int[3],
-            Back = new int[3],
-            Pelvis = new int[3],
-            HipL = new int[3], HipR = new int[3],
-            KneeL = new int[3], KneeR = new int[3],
-            AnkleL = new int[3], AnkleR = new int[3];
+            //tracked points x,y,z, co-ordinates (16 joints
+            WristLX = new int[5], WristLY = new int[5], WristLZ = new int[5],
+            WristRX = new int[5], WristRY = new int[5], WristRZ = new int[5],
+            ElbowLX = new int[5], ElbowLY = new int[5], ElbowLZ = new int[5],
+            ElbowRX = new int[5], ElbowRY = new int[5], ElbowRZ = new int[5],
+            ShoulderLX = new int[5], ShoulderLY = new int[5], ShoulderLZ = new int[5],
+            ShoulderRX = new int[5], ShoulderRY = new int[5], ShoulderRZ = new int[5],
+            CenterX = new int[5], CenterY = new int[5], CenterZ = new int[5],
+            NeckX = new int[5], NeckY = new int[5], NeckZ = new int[5],
+            BackX = new int[5], BackY = new int[5], BackZ = new int[5],
+            PelvisX = new int[5], PelvisY = new int[5], PelvisZ = new int[5],
+            HipLX = new int[5], HipLY = new int[5], HipLZ = new int[5],
+            HipRX = new int[5], HipRY = new int[5], HipRZ = new int[5],
+            KneeLX = new int[5], KneeLY = new int[5], KneeLZ = new int[5],
+            KneeRX = new int[5], KneeRY = new int[5], KneeRZ = new int[5],
+            AnkleLX = new int[5], AnkleLY = new int[5], AnkleLZ = new int[5],
+            AnkleRX = new int[5], AnkleRY = new int[5], AnkleRZ = new int[5];
+
         public Form1()
         {
             InitializeComponent();
@@ -77,7 +84,7 @@ namespace Neural_network
 
             //add contents of kinematic data to array
             Kinematic = KinematicData.Text;
-            //ConvertKinematic(500);            
+            ConvertKinematic(500);            
         }
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
@@ -198,10 +205,10 @@ namespace Neural_network
             char[] KinematicChar = Kinematic.ToCharArray();
 
             int[][]
-                Components = new int[16][],
+                Components = new int[datasize][],
                 KinData = new int[DataSize][];
 
-            while (iter < 14)
+            while (iter < 50)
             {
 
                 for (int i = 0; i < KinematicChar.Length; i++)
@@ -218,74 +225,254 @@ namespace Neural_network
                     }
                     switch (iter)
                     {
-                        case 0:
-                            AF3[j] = (int)Char.GetNumericValue(KinematicChar[i]);
-                            Components[0] = AF3;
-                            j++;
+                        case 0:                            
+                            WristLX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[0] = WristLX;
+                            j++;                                                     
                             break;
                         case 1:
-                            AF4[j] = (int)Char.GetNumericValue(KinematicChar[i]);
-                            Components[1] = AF4;
+                            WristLY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[1] = WristLY;
                             j++;
                             break;
                         case 2:
-                            F7[j] = (int)Char.GetNumericValue(KinematicChar[i]);
-                            Components[2] = F7;
+                            WristLZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[2] = WristLZ;
                             j++;
                             break;
                         case 3:
-                            F3[j] = (int)Char.GetNumericValue(KinematicChar[i]);
-                            Components[3] = F3;
+                            WristRX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[3] = WristRX;
                             j++;
                             break;
                         case 4:
-                            F4[j] = (int)Char.GetNumericValue(KinematicChar[i]);
-                            Components[4] = F4;
+                            WristRY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[4] = WristRY;
                             j++;
                             break;
                         case 5:
-                            F8[j] = (int)Char.GetNumericValue(KinematicChar[i]);
-                            Components[5] = F8;
+                            WristRZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[5] = WristRZ;
                             j++;
                             break;
                         case 6:
-                            FC5[j] = (int)Char.GetNumericValue(KinematicChar[i]);
-                            Components[6] = FC5;
+                            ElbowLX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[6] = ElbowLX;
                             j++;
                             break;
                         case 7:
-                            FC6[j] = (int)Char.GetNumericValue(KinematicChar[i]);
-                            Components[7] = FC6;
+                            ElbowLY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[7] = ElbowLY;
                             j++;
                             break;
                         case 8:
-                            T7[j] = (int)Char.GetNumericValue(KinematicChar[i]);
-                            Components[8] = T7;
+                            ElbowLZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[8] = ElbowLZ;
                             j++;
                             break;
                         case 9:
-                            T8[j] = (int)Char.GetNumericValue(KinematicChar[i]);
-                            Components[9] = T8;
+                            ElbowRX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[9] = ElbowRX;
                             j++;
                             break;
                         case 10:
-                            P7[j] = (int)Char.GetNumericValue(KinematicChar[i]);
-                            Components[10] = P7;
+                            ElbowRY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[10] = ElbowRY;
                             j++;
                             break;
                         case 11:
-                            P8[j] = (int)Char.GetNumericValue(KinematicChar[i]);
-                            Components[11] = P8;
+                            ElbowRZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[11] = ElbowRZ;
                             j++;
                             break;
                         case 12:
-                            O1[j] = (int)Char.GetNumericValue(KinematicChar[i]);
-                            Components[12] = O1;
+                            ShoulderLX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[12] = ShoulderLX;
                             j++;
                             break;
                         case 13:
-                            O2[j] = (int)Char.GetNumericValue(KinematicChar[i]);
-                            Components[13] = O2;
+                            ShoulderLY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[13] = ShoulderLY;
+                            j++;
+                            break;
+                        case 14:
+                            ShoulderLZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[14] = ShoulderLZ;
+                            j++;
+                            break;
+                        case 15:
+                            ShoulderRX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[15] = ShoulderRX;
+                            j++;
+                            break;
+                        case 16:
+                            ShoulderRY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[16] = ShoulderRY;
+                            j++;
+                            break;
+                        case 17:
+                            ShoulderRZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[17] = ShoulderRZ;
+                            j++;
+                            break;
+                        case 18:
+                            CenterX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[18] = CenterX;
+                            j++;
+                            break;
+                        case 19:
+                            CenterY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[19] = CenterY;
+                            j++;
+                            break;
+                        case 20:
+                            CenterZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[20] = CenterZ;
+                            j++;
+                            break;
+                        case 21:
+                            NeckX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[21] = NeckX;
+                            j++;
+                            break;
+                        case 22:
+                            NeckY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[22] = NeckY;
+                            j++;
+                            break;
+                        case 23:
+                            NeckZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[23] = NeckZ;
+                            j++;
+                            break;
+                        case 24:
+                            BackX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[24] = BackX;
+                            j++;
+                            break;
+                        case 25:
+                            BackY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[25] = BackY;
+                            j++;
+                            break;
+                        case 26:
+                            BackZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[26] = BackZ;
+                            j++;
+                            break;
+                        case 27:
+                            PelvisX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[27] = PelvisX;
+                            j++;
+                            break;
+                        case 28:
+                            PelvisY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[28] = PelvisY;
+                            j++;
+                            break;
+                        case 29:
+                            PelvisZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[29] = PelvisZ;
+                            j++;
+                            break;
+                        case 30:
+                            HipLX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[30] = HipLX;
+                            j++;
+                            break;
+                        case 31:
+                            HipLY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[31] = HipLY;
+                            j++;
+                            break;
+                        case 32:
+                            HipLY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[32] = HipLY;
+                            j++;
+                            break;
+                        case 33:
+                            HipLZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[33] = HipLZ;
+                            j++;
+                            break;
+                        case 34:
+                            HipRX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[34] = HipRX;
+                            j++;
+                            break;
+                        case 35:
+                            HipRY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[35] = HipRY;
+                            j++;
+                            break;
+                        case 36:
+                            HipRZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[36] = HipRZ;
+                            j++;
+                            break;
+                        case 37:
+                            KneeLX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[37] = KneeLX;
+                            j++;
+                            break;
+                        case 38:
+                            KneeLY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[38] = KneeLY;
+                            j++;
+                            break;
+                        case 39:
+                            KneeLZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[39] = KneeLZ;
+                            j++;
+                            break;
+                        case 40:
+                            KneeRX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[40] = KneeRX;
+                            j++;
+                            break;
+                        case 41:
+                            KneeRY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[41] = KneeRY;
+                            j++;
+                            break;
+                        case 42:
+                            KneeRY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[42] = KneeRY;
+                            j++;
+                            break;
+                        case 43:
+                            KneeRZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[43] = KneeRZ;
+                            j++;
+                            break;
+                        case 44:
+                            AnkleLX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[44] = AnkleLX;
+                            j++;
+                            break;
+                        case 45:
+                            AnkleLY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[45] = AnkleLY;
+                            j++;
+                            break;
+                        case 46:
+                            AnkleLZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[46] = AnkleLZ;
+                            j++;
+                            break;
+                        case 47:
+                            AnkleRX[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[47] = AnkleRX;
+                            j++;
+                            break;
+                        case 48:
+                            AnkleRY[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[48] = AnkleRY;
+                            j++;
+                            break;
+                        case 49:
+                            AnkleRZ[j] = (int)Char.GetNumericValue(KinematicChar[i]);
+                            Components[49] = AnkleRZ;
                             j++;
                             break;
                     }
