@@ -19,7 +19,9 @@ namespace Neural_network
             Neural,
             Kinematic;
         int //flag sinitialise
-            Flag = 0;
+            Flag = 0,
+            neuralCount=0,
+            KinematicCount=0;
         int[]
             //EEG sensor channels
             AF3 = new int[5], AF4 = new int[5],
@@ -80,11 +82,11 @@ namespace Neural_network
 
             //add contents of neural data to array
             Neural = NeuralData.Text;
-            ConvertNeural(500);
+            ConvertNeural(neuralCount);
 
             //add contents of kinematic data to array
             Kinematic = KinematicData.Text;
-            ConvertKinematic(500);            
+            ConvertKinematic(KinematicCount);            
         }
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
@@ -100,7 +102,7 @@ namespace Neural_network
             char[] NeuralChar = Neural.ToCharArray();
 
             int[][] 
-                Components = new int[datasize/13][],
+                Components = new int[datasize][],
                 NeuralData = new int[DataSize][];
 
             while (iter < 14)
@@ -497,10 +499,18 @@ namespace Neural_network
                 }
                 if (j == 0)
                 {
+                    if(Dataset[i] == ',')
+                    {
+                        neuralCount++;
+                    }
                     NeuralData.Text = NeuralData.Text + DataSet[i];
                 }
                 else
                 {
+                    if (Dataset[i] == ',')
+                    {
+                        KinematicCount++;
+                    }
                     KinematicData.Text = KinematicData.Text + DataSet[i];
                 }
             }
