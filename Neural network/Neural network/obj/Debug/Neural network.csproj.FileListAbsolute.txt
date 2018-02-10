@@ -1,0 +1,9 @@
+\\dev-ha\redirected_folders\tjharrison1\documents\visual studio 2015\Projects\Neural network\Neural network\bin\Debug\Neural network.exe.config
+\\dev-ha\redirected_folders\tjharrison1\documents\visual studio 2015\Projects\Neural network\Neural network\bin\Debug\Neural network.exe
+\\dev-ha\redirected_folders\tjharrison1\documents\visual studio 2015\Projects\Neural network\Neural network\bin\Debug\Neural network.pdb
+\\dev-ha\redirected_folders\tjharrison1\documents\visual studio 2015\Projects\Neural network\Neural network\obj\Debug\Neural network.csprojResolveAssemblyReference.cache
+\\dev-ha\redirected_folders\tjharrison1\documents\visual studio 2015\Projects\Neural network\Neural network\obj\Debug\Neural_network.Form1.resources
+\\dev-ha\redirected_folders\tjharrison1\documents\visual studio 2015\Projects\Neural network\Neural network\obj\Debug\Neural_network.Properties.Resources.resources
+\\dev-ha\redirected_folders\tjharrison1\documents\visual studio 2015\Projects\Neural network\Neural network\obj\Debug\Neural network.csproj.GenerateResource.Cache
+\\dev-ha\redirected_folders\tjharrison1\documents\visual studio 2015\Projects\Neural network\Neural network\obj\Debug\Neural network.exe
+\\dev-ha\redirected_folders\tjharrison1\documents\visual studio 2015\Projects\Neural network\Neural network\obj\Debug\Neural network.pdb
