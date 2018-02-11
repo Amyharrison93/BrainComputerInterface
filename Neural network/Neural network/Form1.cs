@@ -47,6 +47,15 @@ namespace Neural_network
             KneeRX = new int[5], KneeRY = new int[5], KneeRZ = new int[5],
             AnkleLX = new int[5], AnkleLY = new int[5], AnkleLZ = new int[5],
             AnkleRX = new int[5], AnkleRY = new int[5], AnkleRZ = new int[5];
+        int[][]
+            neuralData = new int[14][],
+            kinematicData = new int[49][];
+        int[][][]
+            neuralIndex = new int[300000][][],
+            kinematicIndex = new int[300000][][];
+        int[][][][]
+            SortedData = new int[2][][][];
+        
 
         public Form1()
         {
@@ -110,16 +119,16 @@ namespace Neural_network
                 
                 for (int i = 0; i < NeuralChar.Length; i++)
                 {
-                    if((NeuralChar[i] == ':') || ((int)Char.GetNumericValue(NeuralChar[i]) == -1))
+                    if((NeuralChar[i] == ':'))
                     {
                         NeuralChar[i] = ',';
                     }
                     if ((NeuralChar[i] == ','))
                     {
                         iter++;
-                        i++;
+                        //i++;
                         j = 0;
-                    }                    
+                    }
                     switch (iter)
                     {
                         case 0:
@@ -193,8 +202,10 @@ namespace Neural_network
                             j++;
                             break;
                     }
+                    neuralIndex[i] = Components;
                 }
             }
+            SortedData[0] = neuralIndex;
             return NeuralData;
         }
         private int[][] ConvertKinematic(int datasize)
@@ -207,7 +218,7 @@ namespace Neural_network
             char[] KinematicChar = Kinematic.ToCharArray();
 
             int[][]
-                Components = new int[datasize][],
+                Components = new int[50][],
                 KinData = new int[DataSize][];
 
             while (iter < 50)
@@ -222,7 +233,7 @@ namespace Neural_network
                     if ((KinematicChar[i] == ','))
                     {
                         iter++;
-                        i++;
+                        //i++;
                         j = 0;
                     }
                     switch (iter)
@@ -478,8 +489,10 @@ namespace Neural_network
                             j++;
                             break;
                     }
+                    kinematicIndex[i] = Components;
                 }
-            }           
+            }
+            SortedData[1] = kinematicIndex;        
             return KinData;
         }
         private void DataSort(char[] Dataset)
@@ -554,5 +567,67 @@ namespace Neural_network
                 DataSort(DataSet);
             }
         }       
+        private void frameCapture(int[][][][] Sorteddata, int frameSize)
+        {
+            
+            if(frameSize == 0)
+            {
+                frameSize = 30;
+            }
+
+            int
+                i = 0, j = 0, k = 0, l = 0,
+                wholenumber=0;
+            double[]
+                AvNeural = new double[14];
+       
+            //captures # of frames from sorteddata for processing
+            for(i=0; i < SortedData[1].Length;i=i+frameSize)
+            {
+                for(j = 0; j < frameSize; j++)
+                {
+                    //average neural data
+                    for (k = 0; k < 14; k++)
+                    {
+                        for (l = 5; l > 0; l--)
+                        {
+                            wholenumber = SortedData[0][i][k][l] * (10 * l);
+                        }
+                        //prevents exceptions when k == 0
+                        if (k == 1)
+                        {
+                            AvNeural[k] = (AvNeural[k - 1] * wholenumber) / k;
+                        }
+                        else
+                        {
+                            AvNeural[k] = wholenumber;
+                        }
+                    }     
+                }
+                //find data spike/s using average value and % diference
+                for(k=0;k<14;k++)
+                {
+                    for (l = 5; l > 0; l--)
+                    {
+                        wholenumber = SortedData[0][i][k][l] * (10 * l);
+                    }            
+                    //compare the value with the average
+                    if(wholenumber > (AvNeural[k]+(AvNeural[k]*0.1)))
+                    {
+                        //if the number is bigger than 10% the average replace the average
+                        AvNeural[k] = wholenumber;
+                    }        
+                }
+                //map kinematic path
+                for(k=0; k < 49; k++)
+                {
+                    for (l = 5; l > 0; l--)
+                    {
+                        wholenumber = SortedData[0][i][k][l] * (10 * l);
+                    }
+
+                }
+            }
+        }
     }
 }
