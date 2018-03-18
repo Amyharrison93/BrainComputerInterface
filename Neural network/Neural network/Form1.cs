@@ -47,11 +47,17 @@ namespace Neural_network
             KneeRX = new int[5], KneeRY = new int[5], KneeRZ = new int[5],
             AnkleLX = new int[5], AnkleLY = new int[5], AnkleLZ = new int[5],
             AnkleRX = new int[5], AnkleRY = new int[5], AnkleRZ = new int[5];
+
+        private void RawFileData_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
         int[][]
             neuralData = new int[14][],
             kinematicData = new int[49][];
         int[][][]
-            neuralIndex = new int[300000][][],
+            neuralIndex = new int[300000][][], //300000 = 500 minutes of data
             kinematicIndex = new int[300000][][];
         int[][][][]
             SortedData = new int[2][][][];
@@ -568,16 +574,16 @@ namespace Neural_network
             }
         }       
         private void frameCapture(int[][][][] Sorteddata, int frameSize)
-        {
-            
+        {            
             if(frameSize == 0)
             {
                 frameSize = 30;
             }
 
             int
-                i = 0, j = 0, k = 0, l = 0,
-                wholenumber=0;
+                i = 0, j = 0, k = 0, l = 0;
+            double
+                L, wholenumber = 0;
             double[]
                 AvNeural = new double[14];
        
@@ -591,7 +597,8 @@ namespace Neural_network
                     {
                         for (l = 5; l > 0; l--)
                         {
-                            wholenumber = SortedData[0][i][k][l] * (10 * l);
+                            L = Math.Pow(10, l);
+                            wholenumber += SortedData[0][i][k][l] * L;
                         }
                         //prevents exceptions when k == 0
                         if (k == 1)
@@ -609,7 +616,8 @@ namespace Neural_network
                 {
                     for (l = 5; l > 0; l--)
                     {
-                        wholenumber = SortedData[0][i][k][l] * (10 * l);
+                        L = Math.Pow(10, l);
+                        wholenumber += SortedData[0][i][k][l] * L;
                     }            
                     //compare the value with the average
                     if(wholenumber > (AvNeural[k]+(AvNeural[k]*0.1)))
@@ -619,13 +627,61 @@ namespace Neural_network
                     }        
                 }
                 //map kinematic path
-                for(k=0; k < 49; k++)
+                for (j = 0; j < frameSize; j++)
                 {
-                    for (l = 5; l > 0; l--)
+                    //for each joint
+                    for (k = 0; k < 49; k++)
                     {
-                        wholenumber = SortedData[0][i][k][l] * (10 * l);
+                        //for each component
+                        for (l = 5; l > 0; l--)
+                        {
+                            L = Math.Pow(10, l);
+                            wholenumber += SortedData[0][i][k][l] * L;
+                        }
+                        //vector 
                     }
+                }
+            }
+        }
+        private void NeuralNet(double[] NeuFrame, double[] QuertFrame)
+        {
+            //gaussian distribution function for initial weightings
+            Random 
+                GaussDist = new Random(),
+                LayGen = new Random();
+            int
+                i, j, k, 
+                LayNum,
+                NodeNum;
 
+            //max of 125000 nodes total (including inp and out)
+            double[]
+                //node values
+                NodeValue = new double[50],
+                //weightings for activation functions
+                WeightVal = new double[50];
+
+            double[][]
+                //number of nodes per layer
+                NodePerLay = new double[50][],
+                NodeWeight = new double[50][];
+            double[][][]
+                //number of layers to contain nodes
+                Layers = new double[50][][],
+                WeightLayer = new double[50][][];
+
+            //add data as first layer
+            Layers[0][0] = NeuFrame;
+            //set initial layer bias
+            Layers[0][0][14] = 1;
+
+            LayNum = LayGen.Next(25, 51);
+            for(i=0; i>LayNum; i++)
+            {
+                NodeNum = LayGen.Next(20, 45);
+                for (j=0; j> NodeNum;j++)
+                {
+                    WeightLayer[ ][][] = 
                 }
             }
         }
