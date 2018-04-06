@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 using System.IO;
 
@@ -15,11 +16,11 @@ namespace Neural_network
     {
         //set background workers
         BackgroundWorker
-            ConvertNeur = new BackgroundWorker(),
-            ConvertKin = new BackgroundWorker(),
+            RunKinConv = new BackgroundWorker(),
+            RunNeuConv = new BackgroundWorker(),
             frameCapN = new BackgroundWorker(),
             frameCapK = new BackgroundWorker(),
-            NeuralNetw = new BackgroundWorker();
+            NeuralThread = new BackgroundWorker();
 
         string
             info,
@@ -65,7 +66,9 @@ namespace Neural_network
 
         private void Process_Click(object sender, EventArgs e)
         {
-            NeuralNet();
+            NeuralThread.RunWorkerAsync();
+
+            MessageBox.Show("Data Processing Complete");
         }
 
         private void RawFileData_TextChanged(object sender, EventArgs e)
@@ -104,17 +107,19 @@ namespace Neural_network
             }
             FileName = BrowseBox.Text;
 
-            //add contents of neural data to array
+            //add contents of data to array
             Neural = NeuralData.Text;
-            ConvertNeural(neuralCount);
-
-            //add contents of kinematic data to array
             Kinematic = KinematicData.Text;
-            //ConvertKinematic(KinematicCount);
+
+            //run the functions
+            RunKinConv.RunWorkerAsync();
+            RunNeuConv.RunWorkerAsync();
 
             //Capture Frame Data
-            frameCapNeur(30);
-            frameCapKin(30);
+            frameCapK.RunWorkerAsync();
+            frameCapN.RunWorkerAsync();
+
+            MessageBox.Show("Sorting Complete");
                         
         }
         private void textBox1_TextChanged(object sender, EventArgs e)
@@ -757,123 +762,316 @@ namespace Neural_network
                 }
             }
         }
-
         private void NeuralNet()
         {
             //gaussian distribution function for initial weightings
-            Random 
+            Random
                 GaussDist = new Random(),
                 LayGen = new Random();
             int
-                i, j, k, l, 
+                i, j, k, l,
+                iter,
                 LayNum = 0,
-                NodeNum = 0;
+                NodeNum = 0,
+                initFlag = 0;
             double
                 sig,
-                z=0,
-                Value = 0;
+                sigPrime,
+                z = 0,
+                Value = 0,
+                AvErr = 0;
             double[]
                 Error = new double[49];
-
-            //max of 125000 nodes total (including inp and out)
+            double[,]
+                ActFunc = new double[50, 15],           //activation function store
+                SigPrime = new double[50, 15],          //sigmoid prime storage
+                ValLayer = new double[50, 15],          //processed value for each node
+                DeltaCh = new double[50, 15];
+            //max of 125000 nodes total (including inp and out layers)
             double[,,]
-                //number of layers to contain nodes
-                Layers = new double[50,50,50],
-                WeightLayer = new double[50,50,50],
-                ValLayer = new double[50,50,50];
+                Layers = new double[50, 50, 50],
+                WeightLayer = new double[50, 50, 50];   //Weight storage
 
-            //add data as first layer
-            for (i = 0; i < 14; i++)
-            {
-                Layers[0,0,i] = SortedData[0,0,i,0];
-            }
-            //set initial layer bias
-            Layers[0,0,14] = 1;
+            chart1.Series.Clear();
+            chart1.Series.Add("Average error");
+            chart1.Series["Average error"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
 
-            //set number of layers
-            LayNum = LayGen.Next(25, 51);
-            //set initial weightings
-            //step through layers
-            for(i=0; i<LayNum; i++)
+            //start neural network for 100 iterations
+            for (iter = 0; (iter < 10); iter++)
             {
-                //set number of nodes
-                NodeNum = LayGen.Next(20, 45);
-                //step thorugh nodes
-                for (j=0; j < NodeNum;j++)
+                //add data as first layer
+                for (i = 0; i < 14; i++)
                 {
-                    //each connection for the node
-                    for (k=0; k<NodeNum; k++)
-                    {
-                        //set intial weights based on gaussian distribution
-                        WeightLayer[i,j,k] = GaussDist.Next(0,100);
-                    }
+                    ActFunc[0, i] = SortedData[0, 0, i, 0];
                 }
-            }//weightings end
+                //set initial layer bias
+                Layers[0, 0, 14] = 1;
 
-            //calculate activation functions
-            //for each layer
-            for(i = 0; i < LayNum; i++)
-            {
-                //for each node value
-                for (j = 0; j < NodeNum; j++)
+                //set number of layers
+                LayNum = LayGen.Next(25, 50);
+
+                /**************************
+                 * set initial weightings *
+                 **************************/
+                //step through layers
+                if (initFlag == 0)
                 {
-                    //for each connection
-                    for (k = 0; k < NodeNum; k++)
+                    for (i = 0; i < LayNum; i++)
                     {
-                        //for each weight
-                        for (l = 0; l < NodeNum; l++)
+                        //set number of nodes
+                        NodeNum = LayGen.Next(5, 14);
+                        //step thorugh nodes
+                        for (j = 0; j < NodeNum; j++)
                         {
-                            z += Layers[i,j,k] * (WeightLayer[j,k,l]/100);
-                            
+                            for (k = 0; k < NodeNum; k++)
+                            {
+                                //set intial weights based on gaussian distribution
+                                WeightLayer[i, j, k] = GaussDist.Next(0, 100);
+                                WeightLayer[i, j, k] = WeightLayer[i, j, k] / 100;
+                            }
                         }
-                        //sigmoid function 1/1+e^z
-                        sig = 1 / (1 + Math.Pow(Math.E, -z));
-                        //activation function
-                        Layers[i,j+1,k] = sig;
-                        z = 0;
-                        sig = 0;
+                    }
+                    //Prevent reinitialisation of weights
+                    initFlag = 1;
+                }
+                /******************
+                 * weightings end *
+                 ******************/
+
+                /**********************************
+                 * calculate activation functions *
+                 **********************************/
+                //for each layer
+                for (i = 0; i < LayNum; i++)
+                {
+                    //for each node value
+                    for (j = 0; j < NodeNum; j++)
+                    {
+                        //for each connection
+                        for (k = 0; k < NodeNum; k++)
+                        {
+                            //for each weight
+                            for (l = 0; l < NodeNum; l++)
+                            {
+                                //determine the 
+                                z += Layers[i, j, k] * (WeightLayer[j, k, l]);
+
+                            }
+                            //sigmoid function 1/1+e^z
+                            sig = 1 / (1 + Math.Pow(Math.E, -z));
+                            //sigmoid prime
+                            sigPrime = sig - Math.Pow(sig, 2);
+                            //activation function
+                            ActFunc[i, j] = sig;
+                            SigPrime[i, j] = sigPrime;
+
+                            //clear values to prevent errors
+                            z = 0;
+                            sig = 0;
+                            sigPrime = 0;
+                        }
                     }
                 }
-            }
-            //for each layer
-            for (i = 0; i < LayNum; i++)
-            {
-                //for each node value
-                for (j = 0; j < NodeNum; j++)
+                /****************************
+                 * activation functions end *
+                 ****************************/
+
+                /************************************
+                 * output value for current weights *
+                 ************************************/
+                //for each layer
+                for (i = 1; i < LayNum; i++)
                 {
-                    //for each connection
-                    for (k = 0; k < NodeNum; k++)
+                    //for each node value
+                    for (j = 0; j < NodeNum; j++)
                     {
-                        //for each weight
-                        for (l = 0; l < NodeNum; l++)
+                        //for each connection
+                        for (k = 0; k < NodeNum; k++)
                         {
                             //find the input value for the node
-                            Value += Layers[i,j,k] * WeightLayer[i,j,k]/100;
+                            Value += ActFunc[i, j] * WeightLayer[i, j, j];
                         }
-                        ValLayer[i, j+1, k] = Value;
+                        ValLayer[i, j] = Value;
+                        //determine if node has been activated
+                        if (ValLayer[j, k] < ActFunc[j + 1, k])
+                        {
+                            ValLayer[j, k] = 0;
+                        }
                         Value = 0;
                     }
                 }
-                for (j = 0; j < NodeNum; j++)
+                /****************************************
+                 * output value for current weights end *
+                 ****************************************/
+
+                /********************
+                 * Back Propegation *
+                 ********************/
+                for (i = 0; i < LayNum; i++)
                 {
-                    //for each connection
-                    for (k = 0; k < NodeNum; k++)
+                    for (j = 1; j < NodeNum; j++)
                     {
-                        //(ValLayer[LayNum, j, k] / SortedData[1, LayNum, j, k]) * (SortedData[1, LayNum, j, k] - ValLayer[LayNum, j, k]);
+                        //for each connection
+                        for (k = 0; k < NodeNum; k++)
+                        {
+                            //find error margin
+                            Error[k] = SortedData[1, 0, j, 0] - ValLayer[NodeNum, j];
+                            AvErr =+ Error[k];
+
+                            if(k == NodeNum-1)
+                            {
+                                AvErr = AvErr / k;
+                                //add to chart
+                                chart1.Series["Average error"].Points.AddXY(iter, AvErr);
+                            }
+                            
+                            //Rate of change calculation
+                            DeltaCh[j, k] = SigPrime[j, k] * Error[j];
+                            //replace old weights
+                            WeightLayer[i, j, k] = WeightLayer[i, j, k] / DeltaCh[j, k];
+                        }
                     }
                 }
-                
+                AvErr = 0;
+                /************************
+                 * Back propegation end *
+                 ************************/
             }
         }
-        static void RunNeuConv(object sender, DoWorkEventArgs e)
+        private void RunNeuConv_DoWork(object sender, DoWorkEventArgs e)
         {
-            //do the thing
+            // Do not access the form's BackgroundWorker reference directly.
+            // Instead, use the reference provided by the sender parameter.
+            BackgroundWorker bw = sender as BackgroundWorker;
 
+            // Extract the argument.
+            int arg = (int)e.Argument;
+
+            // Start the time-consuming operation.
+            e.Result = ConvertNeural(neuralCount);
+
+            // If the operation was canceled by the user, 
+            // set the DoWorkEventArgs.Cancel property to true.
+            if (bw.CancellationPending)
+            {
+                e.Cancel = true;
+            }
         }
-        static void RunKinConv(object sender, DoWorkEventArgs e)
+        private void RunNeuConv_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            //do the thing
+            if (e.Cancelled)
+            {
+                // The user canceled the operation.
+                MessageBox.Show("Operation was canceled");
+            }
+            else if (e.Error != null)
+            {
+                // There was an error during the operation.
+                string msg = String.Format("An error occurred: {0}", e.Error.Message);
+                MessageBox.Show(msg);
+            }
+            else
+            {
+                // The operation completed normally.
+                string msg = String.Format("Result = {0}", e.Result);
+                MessageBox.Show(msg);
+            }
         }
+        private void RunKinConv_DoWork(object sender, DoWorkEventArgs e)
+        {
+            // Do not access the form's BackgroundWorker reference directly.
+            // Instead, use the reference provided by the sender parameter.
+            BackgroundWorker bw = sender as BackgroundWorker;
 
+            // Extract the argument.
+            int arg = (int)e.Argument;
+
+            // Start the time-consuming operation.
+            ConvertKinematic(KinematicCount);
+
+            // If the operation was canceled by the user, 
+            // set the DoWorkEventArgs.Cancel property to true.
+            if (bw.CancellationPending)
+            {
+                e.Cancel = true;
+            }
+        }
+        private void RunKinConv_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Cancelled)
+            {
+                // The user canceled the operation.
+                MessageBox.Show("Operation was canceled");
+            }
+            else if (e.Error != null)
+            {
+                // There was an error during the operation.
+                string msg = String.Format("An error occurred: {0}", e.Error.Message);
+                MessageBox.Show(msg);
+            }
+            else
+            {
+                // The operation completed normally.
+                string msg = String.Format("Result = {0}", e.Result);
+                MessageBox.Show(msg);
+            }
+        }
+        private void NeuralThread_DoWork(object sender, DoWorkEventArgs e)
+        {
+            // Do not access the form's BackgroundWorker reference directly.
+            // Instead, use the reference provided by the sender parameter.
+            BackgroundWorker bw = sender as BackgroundWorker;
+
+            // Extract the argument.
+            int arg = (int)e.Argument;
+
+            // Start the time-consuming operation.
+            NeuralNet();
+
+            // If the operation was canceled by the user, 
+            // set the DoWorkEventArgs.Cancel property to true.
+            if (bw.CancellationPending)
+            {
+                e.Cancel = true;
+            }
+        }
+        private void FeameCapN_DoWork(object sender, DoWorkEventArgs e)
+        {
+            // Do not access the form's BackgroundWorker reference directly.
+            // Instead, use the reference provided by the sender parameter.
+            BackgroundWorker bw = sender as BackgroundWorker;
+
+            // Extract the argument.
+            int arg = (int)e.Argument;
+
+            // Start the time-consuming operation.
+            frameCapNeur(30);
+
+            // If the operation was canceled by the user, 
+            // set the DoWorkEventArgs.Cancel property to true.
+            if (bw.CancellationPending)
+            {
+                e.Cancel = true;
+            }
+        }
+        private void FeameCapK_DoWork(object sender, DoWorkEventArgs e)
+        {
+            // Do not access the form's BackgroundWorker reference directly.
+            // Instead, use the reference provided by the sender parameter.
+            BackgroundWorker bw = sender as BackgroundWorker;
+
+            // Extract the argument.
+            int arg = (int)e.Argument;
+
+            // Start the time-consuming operation.
+            frameCapKin(30);
+
+            // If the operation was canceled by the user, 
+            // set the DoWorkEventArgs.Cancel property to true.
+            if (bw.CancellationPending)
+            {
+                e.Cancel = true;
+            }
+        }
     }
 }
